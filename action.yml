@@ -1,0 +1,68 @@
+name: 'A Debugger Tool For Github Actions'
+description: 'A debugger tool for github actions Online. It allow user to login runner environment.'
+author: 'HalfCoke'
+inputs:
+  frp_server_addr:
+    required: true
+    description: 'frp server addr'
+    default: ''
+  frp_server_port:
+    required: true
+    description: 'frp server port'
+    default: ''
+  frp_token:
+    required: false
+    description: 'frp token'
+    default: ''
+  ssh_port:
+    required: true
+    description: 'ssh port to login'
+    default: ''
+runs:
+  using: "composite"
+  steps:
+    - name: "Fetch Latest Frp"
+      id: "fetch"
+      shell: bash
+      run: |
+        FRP_VSERSION=$(wget -qO- -t1 -T2 "https://api.github.com/repos/fatedier/frp/releases/latest" | grep "tag_name" | head -n 1 | awk -F ":" '{print $2}' | sed 's/\"//g;s/,//g;s/ //g')
+        FRP_VSERSION_NUMBER=${FRP_VSERSION: 1}
+        FRP_TAR="frp_${FRP_VSERSION_NUMBER}_linux_amd64.tar.gz"
+        FRP_URL="https://github.com/fatedier/frp/releases/download/${FRP_VSERSION}/${FRP_TAR}"
+        echo "${FRP_TAR}"
+        echo "${FRP_URL}"
+        wget ${FRP_URL}
+        mkdir frp
+        tar zxf ${FRP_TAR} --strip-components 1 -C ./frp
+        cd frp
+        FRP_DIR=$(pwd)
+        echo "FRP_DIR=${FRP_DIR}" >> $GITHUB_ENV
+        echo $GITHUB_ENV
+
+    - name: "Run Frp Client"
+      id: "run"
+      shell: bash
+      run: |
+        cd $FRP_DIR
+        cat > frpc_action.ini << EOF
+        [common]
+        server_addr = ${{ inputs.frp_server_addr }}
+        server_port = ${{ inputs.frp_server_port }}
+        token = ${{ frp_token }}
+        authentication_method = token
+        authenticate_heartbeats = true
+        authenticate_new_work_conns = true
+
+        user = my_laptop
+
+        [ssh]
+        type = tcp
+        local_ip = 127.0.0.1
+        local_port = 22
+        remote_port = ${{ inputs.ssh_port }}
+        EOF
+        nohup ./frpc -c ./frpc_action.ini & > out
+        echo "SUCCESS"
+
+
+
