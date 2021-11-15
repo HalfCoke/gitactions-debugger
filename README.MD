@@ -37,10 +37,12 @@
 Each runner needs a unique `ssh_port` value.
 
 ```bash
-ssh root@frp_server_addr -p ssh_port 
+ssh runner@frp_server_addr -p ssh_port 
 ```
 
 Input RootPassword: root
+
+You have root permission by using "sudo"
 
 4. Debugger the runner
 
@@ -75,6 +77,10 @@ work
 #### `ssh_port`
 
 **Required** Port to login the runner
+
+### Thanks
+
+[https://github.com/shaowenchen/debugger-action](https://github.com/shaowenchen/debugger-action)
 
 ### License
 
