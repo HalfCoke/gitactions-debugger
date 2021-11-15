@@ -18,6 +18,10 @@ inputs:
     required: true
     description: 'ssh port to login'
     default: ''
+  timeout:
+    required: true
+    description: 'debug run time'
+    default: '30'
 runs:
   using: "composite"
   steps:
@@ -48,7 +52,7 @@ runs:
         [common]
         server_addr = ${{ inputs.frp_server_addr }}
         server_port = ${{ inputs.frp_server_port }}
-        token = ${{ frp_token }}
+        token = ${{ inputs.frp_token }}
         authentication_method = token
         authenticate_heartbeats = true
         authenticate_new_work_conns = true
@@ -61,8 +65,11 @@ runs:
         local_port = 22
         remote_port = ${{ inputs.ssh_port }}
         EOF
+        sudo passwd runner << EOD
+        root
+        root
+        EOD
         nohup ./frpc -c ./frpc_action.ini & > out
         echo "SUCCESS"
-
-
-
+        echo "Wait Time ${{  inputs.timeout  }}..."
+        sleep ${{  inputs.timeout  }}m
