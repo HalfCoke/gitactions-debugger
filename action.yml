@@ -1,4 +1,6 @@
 name: 'A Debugger Tool For Github Actions'
+icon: check
+color: red
 description: 'A debugger tool for github actions Online. It allow user to login runner environment.'
 author: 'HalfCoke'
 inputs:
